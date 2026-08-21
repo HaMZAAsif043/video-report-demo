@@ -32,7 +32,7 @@ export default function ContributorsPage() {
 
         <Card padding={false}>
           {loading ? (
-            <div className="py-16 text-center text-sm text-muted">Loading contributors...</div>
+            <div className="flex items-center justify-center py-16"><img src="/digi-web-pro-assets/loaders/spinner.svg" alt="" className="h-6 w-6 animate-spin" /></div>
           ) : contributors.length === 0 ? (
             <EmptyState title="No contributors" description="No contributors have registered yet." />
           ) : (

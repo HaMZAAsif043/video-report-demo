@@ -77,7 +77,7 @@ export default function ContributorDetailPage() {
     }
   };
 
-  if (loading) return <AppShell><div className="py-20 text-center text-sm text-muted">Loading...</div></AppShell>;
+  if (loading) return <AppShell><div className="flex items-center justify-center py-20"><img src="/digi-web-pro-assets/loaders/spinner.svg" alt="" className="h-6 w-6 animate-spin" /></div></AppShell>;
   if (!data) return null;
 
   const { user, stats, recent_videos, recent_payments } = data;

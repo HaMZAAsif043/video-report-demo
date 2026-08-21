@@ -53,7 +53,7 @@ export default function ContributorDashboard() {
             </Link>
           </div>
           {loading ? (
-            <div className="py-12 text-center text-sm text-muted">Loading...</div>
+            <div className="flex items-center justify-center py-12"><img src="/digi-web-pro-assets/loaders/spinner.svg" alt="" className="h-6 w-6 animate-spin" /></div>
           ) : videos.length === 0 ? (
             <div className="py-12 text-center">
               <p className="text-sm text-muted">No videos yet</p>

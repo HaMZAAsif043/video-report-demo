@@ -104,7 +104,7 @@ export default function ExclusiveRequestsPage() {
 
         <Card padding={false}>
           {loading ? (
-            <div className="py-16 text-center text-sm text-muted">Loading...</div>
+            <div className="flex items-center justify-center py-16"><img src="/digi-web-pro-assets/loaders/spinner.svg" alt="" className="h-6 w-6 animate-spin" /></div>
           ) : requests.length === 0 ? (
             <EmptyState
               title="No exclusive requests"

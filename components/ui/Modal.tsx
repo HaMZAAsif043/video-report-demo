@@ -84,7 +84,12 @@ export function ConfirmModal({
             confirmVariant === "danger" ? "bg-danger hover:bg-red-600" : "bg-accent hover:bg-accent-hover"
           }`}
         >
-          {loading ? "Processing..." : confirmLabel}
+          {loading ? (
+            <span className="inline-flex items-center gap-2">
+              <img src="/digi-web-pro-assets/loaders/spinner.svg" alt="" className="h-4 w-4 animate-spin" />
+              Processing...
+            </span>
+          ) : confirmLabel}
         </button>
       </div>
     </Modal>

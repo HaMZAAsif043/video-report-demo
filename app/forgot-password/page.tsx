@@ -87,7 +87,12 @@ export default function ForgotPasswordPage() {
                 type="submit" disabled={loading}
                 className="w-full cursor-pointer rounded-lg bg-accent py-2.5 text-sm font-semibold text-white transition hover:bg-accent-hover disabled:opacity-50"
               >
-                {loading ? "Sending..." : "Send Reset Code"}
+                {loading ? (
+                  <span className="inline-flex items-center gap-2">
+                    <img src="/digi-web-pro-assets/loaders/spinner.svg" alt="" className="h-4 w-4 animate-spin" />
+                    Sending...
+                  </span>
+                ) : "Send Reset Code"}
               </button>
             </form>
           ) : (
@@ -142,7 +147,12 @@ export default function ForgotPasswordPage() {
                 type="submit" disabled={loading}
                 className="w-full cursor-pointer rounded-lg bg-accent py-2.5 text-sm font-semibold text-white transition hover:bg-accent-hover disabled:opacity-50"
               >
-                {loading ? "Resetting..." : "Reset Password"}
+                {loading ? (
+                  <span className="inline-flex items-center gap-2">
+                    <img src="/digi-web-pro-assets/loaders/spinner.svg" alt="" className="h-4 w-4 animate-spin" />
+                    Resetting...
+                  </span>
+                ) : "Reset Password"}
               </button>
               <button
                 type="button" onClick={() => { setStep("email"); setError(""); setDevCode(""); }}
