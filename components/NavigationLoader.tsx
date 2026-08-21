@@ -24,7 +24,7 @@ export function NavigationLoader() {
 
   useEffect(() => {
     if (loading) {
-      timerRef.current = setTimeout(() => setLoading(false), 400);
+      timerRef.current = setTimeout(() => setLoading(false), 350);
     }
     return () => { if (timerRef.current) clearTimeout(timerRef.current); };
   }, [pathname, loading]);
@@ -32,41 +32,8 @@ export function NavigationLoader() {
   if (!loading) return null;
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-white/80 backdrop-blur-sm">
-      <div className="relative flex items-center justify-center">
-        {/* Spinner ring */}
-        <svg
-          className="h-20 w-20 animate-spin"
-          viewBox="0 0 50 50"
-          style={{ animationDuration: "1s" }}
-        >
-          <circle
-            cx="25"
-            cy="25"
-            r="20"
-            fill="none"
-            stroke="#e5e7eb"
-            strokeWidth="4"
-          />
-          <circle
-            cx="25"
-            cy="25"
-            r="20"
-            fill="none"
-            stroke="#6366f1"
-            strokeWidth="4"
-            strokeLinecap="round"
-            strokeDasharray="80, 200"
-            strokeDashoffset="0"
-          />
-        </svg>
-        {/* Logo centered inside */}
-        <img
-          src="/digi-web-pro-assets/brand/digi-web-pro-mark.svg"
-          alt="Loading..."
-          className="absolute h-8 w-8"
-        />
-      </div>
+    <div className="fixed left-0 top-0 z-[9999] h-1 w-full">
+      <div className="h-full bg-accent rounded-r-full animate-loading-bar" />
     </div>
   );
 }
