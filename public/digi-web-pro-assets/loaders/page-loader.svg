@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="220" height="120" viewBox="0 0 220 120">
+  <style>
+    .dot{animation:p 1.2s infinite ease-in-out}
+    .d2{animation-delay:.15s}.d3{animation-delay:.3s}
+    @keyframes p{0%,60%,100%{transform:translateY(0);opacity:.35}30%{transform:translateY(-10px);opacity:1}}
+  </style>
+  <g transform="translate(70 28)">
+    <circle class="dot" cx="0" cy="0" r="7" fill="#5B3DF5"/>
+    <circle class="dot d2" cx="25" cy="0" r="7" fill="#5B3DF5"/>
+    <circle class="dot d3" cx="50" cy="0" r="7" fill="#5B3DF5"/>
+  </g>
+  <text x="110" y="78" text-anchor="middle" font-family="Inter,Arial" font-size="13" fill="#69748F">Loading Digi Web Pro</text>
+</svg>

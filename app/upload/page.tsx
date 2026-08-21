@@ -74,6 +74,17 @@ export default function UploadPage() {
     setError("");
 
     try {
+      const duration = await new Promise<number>((resolve) => {
+        const videoEl = document.createElement("video");
+        videoEl.preload = "metadata";
+        videoEl.onloadedmetadata = () => {
+          URL.revokeObjectURL(videoEl.src);
+          resolve(Math.floor(videoEl.duration));
+        };
+        videoEl.onerror = () => resolve(0);
+        videoEl.src = URL.createObjectURL(file);
+      });
+
       const formData = new FormData();
       formData.append("file", file);
       formData.append("title", title);
@@ -83,7 +94,7 @@ export default function UploadPage() {
       formData.append("recorded_date", recordedDate);
       formData.append("is_claimed_exclusive", String(isClaimedExclusive));
       formData.append("accepted_terms", "true");
-      formData.append("duration_seconds", "0"); // Backend should handle this
+      formData.append("duration_seconds", String(duration));
 
       await videoApi.upload(formData);
       router.push("/videos");
@@ -133,9 +144,7 @@ export default function UploadPage() {
                     }`}
                   >
                     <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-accent/10 text-accent">
-                      <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
-                      </svg>
+                      <img src="/digi-web-pro-assets/icons/upload.svg" alt="" className="h-6 w-6" />
                     </div>
                     <p className="text-sm font-semibold text-gray-700">Drag & drop your video here</p>
                     <p className="mt-1 text-xs text-muted">or browse files</p>
@@ -144,9 +153,7 @@ export default function UploadPage() {
                 ) : (
                   <div className="flex items-center gap-3 rounded-xl border border-border bg-gray-50 p-4">
                     <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent/10 text-accent">
-                      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" />
-                      </svg>
+                      <img src="/digi-web-pro-assets/icons/video.svg" alt="" className="h-5 w-5" />
                     </div>
                     <div className="flex-1">
                       <p className="truncate text-sm font-medium">{file.name}</p>
@@ -252,7 +259,12 @@ export default function UploadPage() {
               </Button>
             ) : (
               <Button type="submit" disabled={uploading}>
-                {uploading ? "Uploading..." : "Submit Video"}
+                {uploading ? (
+                  <span className="flex items-center gap-2">
+                    <img src="/digi-web-pro-assets/loaders/spinner.svg" alt="" className="h-4 w-4 animate-spin" />
+                    Uploading...
+                  </span>
+                ) : "Submit Video"}
               </Button>
             )}
           </div>

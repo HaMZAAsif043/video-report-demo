@@ -8,6 +8,7 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "Digi Web Pro",
   description: "Video contribution and management platform",
+  icons: { icon: "/digi-web-pro-assets/brand/favicon.svg" },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

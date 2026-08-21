@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="420" height="92" viewBox="0 0 420 92">
+  <rect x="1" y="1" width="418" height="90" rx="12" fill="#fff" stroke="#E5E7EB"/>
+  <rect x="20" y="22" width="42" height="42" rx="10" fill="#F0EDFF"/>
+  <path d="M41 53V34m0 0-7 7m7-7 7 7" stroke="#5B3DF5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="76" y="37" font-family="Inter,Arial" font-size="13" font-weight="650" fill="#101936">Uploading video…</text>
+  <text x="76" y="56" font-family="Inter,Arial" font-size="11" fill="#69748F">Processing your file</text>
+  <rect x="76" y="68" width="315" height="5" rx="3" fill="#E9E7FF"/>
+  <rect x="76" y="68" width="190" height="5" rx="3" fill="#5B3DF5"/>
+</svg>

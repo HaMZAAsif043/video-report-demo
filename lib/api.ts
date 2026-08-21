@@ -226,6 +226,22 @@ export const violationApi = {
   },
 };
 
+// ─── Password Reset API ─────────────────────────────────────
+export const passwordResetApi = {
+  requestCode(email: string) {
+    return apiFetch<{ detail: string; otp_code?: string }>("/api/auth/request-password-reset/", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    });
+  },
+  resetPassword(email: string, code: string, newPassword: string) {
+    return apiFetch<{ detail: string }>("/api/auth/reset-password/", {
+      method: "POST",
+      body: JSON.stringify({ email, code, new_password: newPassword }),
+    });
+  },
+};
+
 // ─── Admin API ──────────────────────────────────────────────
 export const adminApi = {
   getDashboard() {

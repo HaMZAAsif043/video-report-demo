@@ -1,0 +1,30 @@
+/* Digi Web Pro loading primitives */
+.dwp-spinner {
+  width: 22px; height: 22px; border-radius: 50%;
+  border: 3px solid #e8eaf2; border-top-color: #5b3df5;
+  animation: dwp-spin .8s linear infinite;
+}
+@keyframes dwp-spin { to { transform: rotate(360deg); } }
+
+.dwp-page-loader {
+  min-height: 320px; display: grid; place-items: center;
+  color: #69748f; font: 500 14px Inter, system-ui, sans-serif;
+}
+.dwp-loading-dots { display: inline-flex; gap: 6px; align-items: center; }
+.dwp-loading-dots span {
+  width: 7px; height: 7px; border-radius: 50%; background: #5b3df5;
+  animation: dwp-bounce 1.2s infinite ease-in-out;
+}
+.dwp-loading-dots span:nth-child(2) { animation-delay: .15s; }
+.dwp-loading-dots span:nth-child(3) { animation-delay: .3s; }
+@keyframes dwp-bounce {
+  0%,60%,100% { transform: translateY(0); opacity: .35; }
+  30% { transform: translateY(-8px); opacity: 1; }
+}
+.dwp-progress {
+  height: 6px; border-radius: 99px; overflow: hidden; background: #ebe9ff;
+}
+.dwp-progress > span {
+  display: block; height: 100%; border-radius: inherit;
+  background: #5b3df5; transition: width .25s ease;
+}
