@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 export function NavigationLoader() {
   const pathname = usePathname();
   const [loading, setLoading] = useState(false);
-  const timerRef = useRef<ReturnType<typeof setTimeout>>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
