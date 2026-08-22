@@ -93,7 +93,10 @@ export async function apiFetch<T>(
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    const msg = body.detail || body.non_field_errors?.[0] || `Request failed (${res.status})`;
+    const msg = body.detail
+      || body.non_field_errors?.[0]
+      || Object.values(body).flatMap((v) => (Array.isArray(v) ? v : [v])).filter(Boolean)[0]
+      || `Request failed (${res.status})`;
     throw new Error(msg);
   }
 
