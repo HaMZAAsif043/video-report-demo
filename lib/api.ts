@@ -151,13 +151,13 @@ export const videoApi = {
     return apiFetch<import("./types").PaginatedResponse<import("./types").Video>>(`/api/videos/admin/all/${q}`);
   },
   approveVideo(id: number, used_seconds: number) {
-    return apiFetch(`/api/videos/${id}/action/`, {
+    return apiFetch(`/api/videos/admin/${id}/action/`, {
       method: "POST",
       body: JSON.stringify({ action: "approve", used_seconds }),
     });
   },
   rejectVideo(id: number, reason: string) {
-    return apiFetch(`/api/videos/${id}/action/`, {
+    return apiFetch(`/api/videos/admin/${id}/action/`, {
       method: "POST",
       body: JSON.stringify({ action: "reject", reason }),
     });
