@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { apiFetch, videoApi } from "@/lib/api";
+import { apiFetch, videoApi, violationApi } from "@/lib/api";
 import { formatBDT, formatDuration, formatDate, formatDateTime } from "@/lib/format";
 import { Card } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -15,6 +15,12 @@ import AppShell from "@/components/layout/AppShell";
 
 const STANDARD_RATE = 5;
 
+const VIOLATION_TYPES = [
+  { value: "warning", label: "Warning" },
+  { value: "payment_lock", label: "Payment Lock" },
+  { value: "account_suspend", label: "Account Suspension" },
+] as const;
+
 export default function AdminVideoReviewPage() {
   const params = useParams();
   const router = useRouter();
@@ -25,6 +31,11 @@ export default function AdminVideoReviewPage() {
   const [showReject, setShowReject] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [toast, setToast] = useState("");
+  const [showViolation, setShowViolation] = useState(false);
+  const [violationType, setViolationType] = useState<string>("warning");
+  const [violationDesc, setViolationDesc] = useState("");
+  const [violationAction, setViolationAction] = useState<string>("warning");
+  const [violationLoading, setViolationLoading] = useState(false);
 
   useEffect(() => {
     if (!params.id) return;
@@ -62,6 +73,29 @@ export default function AdminVideoReviewPage() {
       setToast(err instanceof Error ? err.message : "Failed");
     } finally {
       setActionLoading(false);
+    }
+  };
+
+  const handleFlagViolation = async () => {
+    if (!video || !violationDesc.trim()) return;
+    setViolationLoading(true);
+    try {
+      await violationApi.flagViolation({
+        contributor_id: video.contributor,
+        video_id: video.id,
+        violation_type: violationType,
+        description: violationDesc,
+        action_taken: violationAction,
+      });
+      setToast("Violation reported successfully");
+      setShowViolation(false);
+      setViolationDesc("");
+      setViolationType("warning");
+      setViolationAction("warning");
+    } catch (err) {
+      setToast(err instanceof Error ? err.message : "Failed to report violation");
+    } finally {
+      setViolationLoading(false);
     }
   };
 
@@ -161,6 +195,13 @@ export default function AdminVideoReviewPage() {
                 <p className="text-sm text-gray-700">{video.rejection_reason}</p>
               </Card>
             )}
+
+            {/* Report Violation */}
+            {video.status !== "pending" && (
+              <Button variant="danger" size="sm" onClick={() => setShowViolation(true)}>
+                Report Violation
+              </Button>
+            )}
           </div>
         </div>
       </div>
@@ -182,6 +223,54 @@ export default function AdminVideoReviewPage() {
             placeholder="Explain why this video is being rejected..."
             className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm placeholder:text-gray-400 focus:border-accent focus:outline-none"
           />
+        </div>
+      </ConfirmModal>
+
+      {/* Report Violation Modal */}
+      <ConfirmModal
+        open={showViolation}
+        onClose={() => setShowViolation(false)}
+        onConfirm={handleFlagViolation}
+        title="Report Violation"
+        message={`Report a terms violation for "${video.title}" by ${video.contributor_name}.`}
+        confirmLabel="Submit Report"
+        loading={violationLoading}
+      >
+        <div className="mt-4 space-y-3">
+          <div>
+            <label className="mb-1 block text-xs font-medium text-gray-700">Violation Type *</label>
+            <select
+              value={violationType}
+              onChange={(e) => setViolationType(e.target.value)}
+              className="w-full appearance-none rounded-lg border border-border bg-white px-3 py-2 text-sm focus:border-accent focus:outline-none"
+            >
+              {VIOLATION_TYPES.map((t) => (
+                <option key={t.value} value={t.value}>{t.label}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-gray-700">Action *</label>
+            <select
+              value={violationAction}
+              onChange={(e) => setViolationAction(e.target.value)}
+              className="w-full appearance-none rounded-lg border border-border bg-white px-3 py-2 text-sm focus:border-accent focus:outline-none"
+            >
+              <option value="warning">Warning</option>
+              <option value="payment_lock">Lock Payment</option>
+              <option value="account_suspend">Suspend Account</option>
+            </select>
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-gray-700">Description *</label>
+            <textarea
+              value={violationDesc}
+              onChange={(e) => setViolationDesc(e.target.value)}
+              rows={3}
+              placeholder="Describe the violation (e.g., video appears edited, uploaded elsewhere, not original...)..."
+              className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm placeholder:text-gray-400 focus:border-accent focus:outline-none"
+            />
+          </div>
         </div>
       </ConfirmModal>
 

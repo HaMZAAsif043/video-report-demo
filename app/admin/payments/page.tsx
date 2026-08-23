@@ -20,6 +20,8 @@ export default function AdminPaymentsPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("all");
   const [toast, setToast] = useState("");
+  const [processingId, setProcessingId] = useState<number | null>(null);
+  const [lockingId, setLockingId] = useState<number | null>(null);
 
   const fetchPayments = () => {
     setLoading(true);
@@ -35,12 +37,28 @@ export default function AdminPaymentsPage() {
   useEffect(() => { fetchPayments(); }, [activeTab]);
 
   const handleProcess = async (id: number) => {
+    setProcessingId(id);
     try {
       await paymentApi.processPayment(id);
       setToast("Payment processed!");
       fetchPayments();
     } catch (err) {
       setToast(err instanceof Error ? err.message : "Failed");
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  const handleLock = async (id: number) => {
+    setLockingId(id);
+    try {
+      await paymentApi.lockPayment(id);
+      setToast("Payment locked!");
+      fetchPayments();
+    } catch (err) {
+      setToast(err instanceof Error ? err.message : "Failed");
+    } finally {
+      setLockingId(null);
     }
   };
 
@@ -93,9 +111,14 @@ export default function AdminPaymentsPage() {
                       </Td>
                       <Td className="text-right">
                         {p.status === "pending" && (
-                          <Button size="sm" onClick={() => handleProcess(p.id)}>
-                            Process Payment
-                          </Button>
+                          <div className="flex justify-end gap-2">
+                            <Button size="sm" variant="danger" onClick={() => handleLock(p.id)} disabled={lockingId === p.id || processingId === p.id}>
+                              {lockingId === p.id ? "Locking..." : "Lock"}
+                            </Button>
+                            <Button size="sm" onClick={() => handleProcess(p.id)} disabled={processingId === p.id || lockingId === p.id}>
+                              {processingId === p.id ? "Processing..." : "Process Payment"}
+                            </Button>
+                          </div>
                         )}
                       </Td>
                     </TableRow>

@@ -37,6 +37,7 @@ export interface Video {
   rejection_reason: string;
   uploaded_at: string;
   reviewed_at: string | null;
+  contributor: number;
   contributor_name: string;
   accepted_terms: boolean;
 }

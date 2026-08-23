@@ -133,6 +133,18 @@ export const authApi = {
   changePassword(old_password: string, new_password: string) {
     return apiFetch("/api/auth/change-password/", { method: "POST", body: JSON.stringify({ old_password, new_password }) });
   },
+  verifyEmail(email: string, code: string) {
+    return apiFetch<{ detail: string }>("/api/auth/verify-email/", {
+      method: "POST",
+      body: JSON.stringify({ email, code }),
+    });
+  },
+  resendVerification(email: string) {
+    return apiFetch<{ detail: string }>("/api/auth/resend-verification/", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    });
+  },
 };
 
 // ─── Video API ──────────────────────────────────────────────
@@ -180,10 +192,10 @@ export const paymentApi = {
     return apiFetch<import("./types").PaginatedResponse<import("./types").Payment>>(`/api/payments/admin/pending/${q}`);
   },
   processPayment(id: number) {
-    return apiFetch(`/api/payments/${id}/process/`, { method: "POST", body: JSON.stringify({}) });
+    return apiFetch(`/api/payments/admin/${id}/process/`, { method: "POST", body: JSON.stringify({}) });
   },
   lockPayment(id: number) {
-    return apiFetch(`/api/payments/${id}/lock/`, { method: "POST", body: JSON.stringify({}) });
+    return apiFetch(`/api/payments/admin/${id}/lock/`, { method: "POST", body: JSON.stringify({}) });
   },
 };
 

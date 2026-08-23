@@ -67,7 +67,9 @@ export default function Sidebar() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
   const isAdmin = user?.role === "admin";
-  const navItems = isAdmin ? adminNav : contributorNav;
+  const navItems = (isAdmin ? adminNav : contributorNav).filter(
+    (item) => user?.account_status === "active" || (item.href !== "/upload" && item.href !== "/exclusive-requests")
+  );
 
   return (
     <aside className="fixed inset-y-0 left-0 z-40 flex w-60 flex-col border-r border-border bg-white">

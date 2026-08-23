@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { videoApi } from "@/lib/api";
+import { useAuth } from "@/lib/auth-context";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -24,6 +25,8 @@ const CATEGORIES = [
 
 export default function UploadPage() {
   const router = useRouter();
+  const { user } = useAuth();
+  const isBlocked = user && user.account_status !== "active";
   const [step, setStep] = useState(1);
   const [file, setFile] = useState<File | null>(null);
   const [dragging, setDragging] = useState(false);
@@ -104,6 +107,30 @@ export default function UploadPage() {
       setUploading(false);
     }
   };
+
+  if (isBlocked) {
+    return (
+      <AppShell>
+        <div className="space-y-6">
+          <PageHeader title="Upload Video" />
+          <Card>
+            <div className="flex flex-col items-center py-12 text-center">
+              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-danger-light">
+                <svg className="h-8 w-8 text-danger" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" /></svg>
+              </div>
+              <h2 className="text-lg font-semibold text-gray-900">Account {user?.account_status === "frozen" ? "Frozen" : "Suspended"}</h2>
+              <p className="mt-2 max-w-sm text-sm text-muted">
+                Your account has been {user?.account_status === "frozen" ? "frozen" : "suspended"} and you cannot upload videos at this time. Please contact the admin for more information.
+              </p>
+              <Button variant="secondary" className="mt-6" onClick={() => router.push("/")}>
+                Back to Dashboard
+              </Button>
+            </div>
+          </Card>
+        </div>
+      </AppShell>
+    );
+  }
 
   return (
     <AppShell>

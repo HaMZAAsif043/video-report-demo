@@ -6,9 +6,12 @@ import { useAuth } from "@/lib/auth-context";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
+type Step = "form" | "verify" | "done";
+
 export default function RegisterPage() {
   const { login } = useAuth();
   const router = useRouter();
+  const [step, setStep] = useState<Step>("form");
   const [form, setForm] = useState({
     first_name: "",
     last_name: "",
@@ -24,12 +27,15 @@ export default function RegisterPage() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
+  const [otp, setOtp] = useState("");
+  const [verifyError, setVerifyError] = useState("");
+  const [verifyLoading, setVerifyLoading] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
 
   const update = (field: string, value: string) =>
     setForm((prev) => ({ ...prev, [field]: value }));
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleRegister = async (e: FormEvent) => {
     e.preventDefault();
     setError("");
     if (!agreed) { setError("You must agree to the Terms & Conditions."); return; }
@@ -38,8 +44,8 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       await authApi.register(form);
-      await login(form.username, form.password);
-      setSuccess(true);
+      setStep("verify");
+      startResendCooldown();
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Registration failed";
       if (msg.includes("Failed to fetch") || msg.includes("NetworkError")) {
@@ -52,37 +58,86 @@ export default function RegisterPage() {
     }
   };
 
-  if (success) {
+  const handleVerify = async (e: FormEvent) => {
+    e.preventDefault();
+    setVerifyError("");
+    if (!otp.trim()) { setVerifyError("Please enter the verification code."); return; }
+
+    setVerifyLoading(true);
+    try {
+      await authApi.verifyEmail(form.email, otp.trim());
+      await login(form.username, form.password);
+      setStep("done");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Verification failed";
+      setVerifyError(msg);
+    } finally {
+      setVerifyLoading(false);
+    }
+  };
+
+  const handleResend = async () => {
+    if (resendCooldown > 0) return;
+    try {
+      await authApi.resendVerification(form.email);
+      startResendCooldown();
+    } catch (err) {
+      setVerifyError(err instanceof Error ? err.message : "Failed to resend code");
+    }
+  };
+
+  const startResendCooldown = () => {
+    setResendCooldown(60);
+    const interval = setInterval(() => {
+      setResendCooldown((prev) => {
+        if (prev <= 1) { clearInterval(interval); return 0; }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  const inputClass = "h-11 w-full rounded-xl border border-border bg-white px-4 text-sm placeholder:text-gray-400 transition focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20";
+
+  const AuthBranding = () => (
+    <div className="relative z-10">
+      <div className="mb-8 flex gap-10">
+        <div><p className="text-3xl font-bold text-white">2,450+</p><p className="mt-1 text-sm text-slate-400">Videos Managed</p></div>
+        <div><p className="text-3xl font-bold text-white">180+</p><p className="mt-1 text-sm text-slate-400">Contributors</p></div>
+      </div>
+      <div className="flex items-center gap-3 border-t border-slate-700/50 pt-6">
+        <img src="/digi-web-pro-assets/brand/digi-web-pro-mark.svg" alt="" className="h-8 w-8" />
+        <div><p className="text-sm font-semibold text-white">Trusted by media professionals</p><p className="text-xs text-slate-400">Professional Video Management Platform</p></div>
+      </div>
+    </div>
+  );
+
+  const AuthHero = () => (
+    <div className="relative z-10 flex flex-1 items-center justify-center">
+      <div className="relative animate-float">
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-[140px] w-[140px] rounded-full bg-indigo-500/20 animate-pulse-ring" />
+        <div className="relative flex h-28 w-28 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 shadow-2xl shadow-indigo-500/30">
+          <svg className="h-12 w-12 text-white ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+        </div>
+      </div>
+    </div>
+  );
+
+  // ─── Done Screen ────────────────────────────────────────
+  if (step === "done") {
     return (
       <div className="flex min-h-screen">
         <div className="relative hidden w-1/2 overflow-hidden bg-[#0f172a] lg:flex lg:flex-col lg:justify-between lg:p-10">
           <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
-          <div className="relative z-10 flex flex-1 items-center justify-center">
-            <div className="relative animate-float">
-              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-[140px] w-[140px] rounded-full bg-indigo-500/20 animate-pulse-ring" />
-              <div className="relative flex h-28 w-28 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 shadow-2xl shadow-indigo-500/30">
-                <svg className="h-12 w-12 text-white ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
-              </div>
-            </div>
-          </div>
-          <div className="relative z-10">
-            <div className="mb-8 flex gap-10">
-              <div><p className="text-3xl font-bold text-white">2,450+</p><p className="mt-1 text-sm text-slate-400">Videos Managed</p></div>
-              <div><p className="text-3xl font-bold text-white">180+</p><p className="mt-1 text-sm text-slate-400">Contributors</p></div>
-            </div>
-            <div className="flex items-center gap-3 border-t border-slate-700/50 pt-6">
-              <img src="/digi-web-pro-assets/brand/digi-web-pro-mark.svg" alt="" className="h-8 w-8" />
-              <div><p className="text-sm font-semibold text-white">Trusted by media professionals</p><p className="text-xs text-slate-400">Professional Video Management Platform</p></div>
-            </div>
-          </div>
+          <AuthHero />
+          <AuthBranding />
         </div>
         <div className="flex flex-1 items-center justify-center p-6 lg:p-10">
           <div className="w-full max-w-md animate-fade-in-up text-center">
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-success-light">
               <svg className="h-8 w-8 text-success" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
             </div>
-            <h1 className="text-2xl font-bold tracking-tight text-gray-900">Account Created</h1>
-            <p className="mt-2 text-sm text-muted">Welcome to Digi Web Pro! Your contributor account has been created successfully.</p>
+            <h1 className="text-2xl font-bold tracking-tight text-gray-900">Email Verified</h1>
+            <p className="mt-2 text-sm text-muted">Your account is verified. Welcome to Digi Web Pro!</p>
             <button onClick={() => router.push("/")} className="mt-6 h-11 w-full cursor-pointer rounded-xl bg-accent text-sm font-semibold text-white shadow-sm shadow-accent/25 transition hover:bg-accent-hover hover:shadow-md hover:shadow-accent/30 active:scale-[0.98]">Continue to Dashboard</button>
           </div>
         </div>
@@ -90,31 +145,92 @@ export default function RegisterPage() {
     );
   }
 
-  const inputClass = "h-11 w-full rounded-xl border border-border bg-white px-4 text-sm placeholder:text-gray-400 transition focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20";
+  // ─── Verify Screen ──────────────────────────────────────
+  if (step === "verify") {
+    return (
+      <div className="flex min-h-screen">
+        <div className="relative hidden w-[45%] overflow-hidden bg-[#0f172a] lg:flex lg:flex-col lg:justify-between lg:p-10">
+          <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
+          <AuthHero />
+          <AuthBranding />
+        </div>
+        <div className="flex flex-1 items-center justify-center p-6 lg:p-10">
+          <div className="w-full max-w-md animate-fade-in-up">
+            <div className="mb-8 text-center lg:hidden">
+              <img src="/digi-web-pro-assets/brand/digi-web-pro-mark.svg" alt="Digi Web Pro" className="mx-auto mb-3 h-12 w-12" />
+              <h1 className="text-xl font-bold tracking-tight text-gray-900">Digi Web Pro</h1>
+            </div>
+            <div className="mb-6 hidden lg:block">
+              <h1 className="text-2xl font-bold tracking-tight text-gray-900">Verify Your Email</h1>
+              <p className="mt-1.5 text-sm text-muted">We sent a 6-digit code to <span className="font-medium text-gray-900">{form.email}</span></p>
+            </div>
+            <div className="mb-6 text-center lg:hidden">
+              <h1 className="text-2xl font-bold tracking-tight text-gray-900">Verify Your Email</h1>
+              <p className="mt-1.5 text-sm text-muted">We sent a 6-digit code to <span className="font-medium text-gray-900">{form.email}</span></p>
+            </div>
 
+            <div className="rounded-2xl border border-border bg-white p-6 shadow-sm">
+              <form onSubmit={handleVerify} className="space-y-4">
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-gray-700">Verification Code</label>
+                  <input
+                    type="text"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                    placeholder="Enter 6-digit code"
+                    className={`${inputClass} text-center text-lg tracking-[0.3em]`}
+                    maxLength={6}
+                    autoFocus
+                    required
+                  />
+                </div>
+
+                {verifyError && (
+                  <div className="flex items-start gap-2.5 rounded-xl border border-danger-light bg-danger-light px-4 py-3 text-xs text-danger">
+                    <svg className="mt-0.5 h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" /></svg>
+                    <span>{verifyError}</span>
+                  </div>
+                )}
+
+                <button type="submit" disabled={verifyLoading || otp.length !== 6} className="h-11 w-full cursor-pointer rounded-xl bg-accent text-sm font-semibold text-white shadow-sm shadow-accent/25 transition hover:bg-accent-hover hover:shadow-md hover:shadow-accent/30 active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100">
+                  {verifyLoading ? (
+                    <span className="inline-flex items-center gap-2">
+                      <img src="/digi-web-pro-assets/loaders/spinner.svg" alt="" className="h-4 w-4 animate-spin" />
+                      Verifying...
+                    </span>
+                  ) : "Verify Email"}
+                </button>
+              </form>
+
+              <div className="mt-4 text-center">
+                <button
+                  type="button"
+                  onClick={handleResend}
+                  disabled={resendCooldown > 0}
+                  className="text-xs text-accent transition hover:text-accent-hover disabled:text-gray-400 disabled:cursor-not-allowed"
+                >
+                  {resendCooldown > 0 ? `Resend code in ${resendCooldown}s` : "Resend verification code"}
+                </button>
+              </div>
+            </div>
+
+            <p className="mt-6 text-center text-xs text-muted">
+              <button onClick={() => setStep("form")} className="font-medium text-accent transition hover:text-accent-hover">Back to registration</button>
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── Registration Form ──────────────────────────────────
   return (
     <div className="flex min-h-screen">
       {/* Left Panel */}
       <div className="relative hidden w-[45%] overflow-hidden bg-[#0f172a] lg:flex lg:flex-col lg:justify-between lg:p-10">
         <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
-        <div className="relative z-10 flex flex-1 items-center justify-center">
-            <div className="relative animate-float">
-              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-[140px] w-[140px] rounded-full bg-indigo-500/20 animate-pulse-ring" />
-              <div className="relative flex h-28 w-28 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 shadow-2xl shadow-indigo-500/30">
-                <svg className="h-12 w-12 text-white ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
-              </div>
-            </div>
-          </div>
-        <div className="relative z-10">
-          <div className="mb-8 flex gap-10">
-            <div><p className="text-3xl font-bold text-white">2,450+</p><p className="mt-1 text-sm text-slate-400">Videos Managed</p></div>
-            <div><p className="text-3xl font-bold text-white">180+</p><p className="mt-1 text-sm text-slate-400">Contributors</p></div>
-          </div>
-          <div className="flex items-center gap-3 border-t border-slate-700/50 pt-6">
-            <img src="/digi-web-pro-assets/brand/digi-web-pro-mark.svg" alt="" className="h-8 w-8" />
-            <div><p className="text-sm font-semibold text-white">Trusted by media professionals</p><p className="text-xs text-slate-400">Professional Video Management Platform</p></div>
-          </div>
-        </div>
+        <AuthHero />
+        <AuthBranding />
       </div>
 
       {/* Right Panel */}
@@ -135,7 +251,7 @@ export default function RegisterPage() {
 
           {/* Card */}
           <div className="rounded-2xl border border-border bg-white p-6 shadow-sm">
-            <form onSubmit={handleSubmit} className="space-y-3">
+            <form onSubmit={handleRegister} className="space-y-3">
               {/* Row 1: Name */}
               <div className="grid grid-cols-2 gap-3">
                 <div>

@@ -28,11 +28,21 @@ export default function ExclusiveRequestsPage() {
       apiFetch<{ results: ExclusiveRequest[] }>("/api/payments/exclusive/my/").catch(() => ({ results: [] })),
       apiFetch<{ results: Video[] }>("/api/videos/my/").catch(() => ({ results: [] })),
     ]).then(([reqs, vids]) => {
-      setRequests(reqs.results || []);
-      setApprovedVideos((vids.results || []).filter((v) => v.status === "approved" && v.is_claimed_exclusive));
+      const requests = reqs.results || [];
+      setRequests(requests);
+      const requestedVideoIds = new Set(requests.map((r) => r.video));
+      setApprovedVideos((vids.results || []).filter((v) => v.status === "approved" && v.is_claimed_exclusive && !requestedVideoIds.has(v.id)));
       setLoading(false);
     });
   }, []);
+
+  const refreshRequests = async () => {
+    const data = await apiFetch<{ results: ExclusiveRequest[] }>("/api/payments/exclusive/my/");
+    const requests = data.results || [];
+    setRequests(requests);
+    const requestedVideoIds = new Set(requests.map((r) => r.video));
+    setApprovedVideos((prev) => prev.filter((v) => !requestedVideoIds.has(v.id)));
+  };
 
   const handleSubmit = async () => {
     if (!selectedVideo || !reason.trim()) return;
@@ -43,9 +53,7 @@ export default function ExclusiveRequestsPage() {
       setShowForm(false);
       setSelectedVideo(null);
       setReason("");
-      // Refresh
-      const data = await apiFetch<{ results: ExclusiveRequest[] }>("/api/payments/exclusive/my/");
-      setRequests(data.results || []);
+      await refreshRequests();
     } catch (err) {
       setToast(err instanceof Error ? err.message : "Failed to submit");
     } finally {
